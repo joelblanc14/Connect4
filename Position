@@ -1,0 +1,36 @@
+public class Position {
+
+    private final int row;
+    private final int column;
+
+    public Position(int row, int column) {
+        this.row = row;
+        this.column = column;
+    }
+
+    public int getRow() {
+
+        return this.row;
+    }
+
+    public int getColumn() {
+
+        return this.column;
+    }
+
+    public Position move(Direction direction) {
+        Position position = new Position(this.row + direction.getChangeInRow(), this.column + direction.getChangeInColumn());
+        return position;
+    }
+
+    public boolean isEqualTo(Position other) {
+        Position position = new Position(this.row, this.column);
+        if(position.row == other.row && position.column == other.column) return true;
+        return false;
+    }
+
+    public static int pathLength(Position pos1, Position pos2) {
+        if (pos1.isEqualTo(pos2)) return 1;
+        else return Math.max(Math.abs(pos1.row - pos2.row) + 1, Math.abs(pos1.column - pos2.column) + 1);
+    }
+}
