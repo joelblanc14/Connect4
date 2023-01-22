@@ -1,0 +1,130 @@
+import java.util.StringTokenizer;
+
+public class Board {
+
+    private final int numRows;
+    private final int numColumns;
+    private final Player[][] cells;
+
+    public Board(int numRows, int numColumns) {
+        this.numRows = numRows;
+        this.numColumns = numColumns;
+        this.cells = new Player[numRows][numColumns];
+    }
+
+    public int getNumRows() {
+
+        return this.numRows;
+    }
+
+    public int getNumColumns() {
+
+        return this.numColumns;
+    }
+
+    public boolean canPlayColumn(int column) {
+        if(column < 0 || column >= this.numColumns) return false;
+        else if(this.cells[0][column] == null) return true;
+        return false;
+    }
+
+    public boolean hasValidMoves() {
+        for(int i = 0; i < this.numColumns; i++) {
+            if(canPlayColumn(i)) return true;
+        }
+        return false;
+    }
+
+    public Position play(int column, Player player) {
+        int actualRow = this.numRows - 1;
+
+        if(!canPlayColumn(column)) return null;
+        while(this.cells[actualRow][column] != null) {
+            actualRow--;
+        }
+        Position result = new Position(actualRow, column);
+        this.cells[actualRow][column] = player;
+        return result;
+    }
+
+    public int lastEmptyRow(int column) {
+        int actualRow = this.numRows - 1;
+
+        if(column < 0 || column >= this.numColumns || !canPlayColumn(column)) return -1;
+        while(this.cells[actualRow][column] != null) {
+            actualRow--;
+        }
+        return actualRow;
+    }
+
+    public int maxConnected(Position position) {
+        int length1 = connected(position, Direction.DOWN);
+        int length2 = connected(position, Direction.RIGHT);
+        int length3 = connected(position, Direction.MAIN_DIAGONAL);
+        int length4 = connected(position, Direction.CONTRA_DIAGONAL);
+        return max(length1, length2, length3, length4);
+    }
+
+    private int connected(Position position, Direction direction) {
+        Player player = cells[position.getRow()][position.getColumn()];
+        Position position1 = position.move(direction);
+        Position position2 = position.move(direction.invert());
+        Position connectedDir1 = position;
+        Position connectedDir2 = position;
+        if(player == null) return -1;
+        while (position1.getRow() < numRows &&
+                position1.getColumn() >= 0 &&
+                position1.getColumn() < numColumns &&
+                player.isEqualTo(cells[position1.getRow()][position1.getColumn()])) {
+                    connectedDir1 = position1;
+                    position1 = position1.move(direction);
+        }
+
+        while (position2.getRow() >= 0 &&
+                position2.getRow() < numRows &&
+                position2.getColumn() >= 0 &&
+                position2.getColumn() < numColumns &&
+                player.isEqualTo(cells[position2.getRow()][position2.getColumn()])) {
+                    connectedDir2 = position2;
+                    position2 = position2.move(direction.invert());
+        }
+        return Position.pathLength(connectedDir1,connectedDir2);
+    }
+
+    private int max(int length1, int length2, int lenght3, int length4) {
+        return Math.max(Math.max(length1,length2), Math.max(lenght3, length4));
+    }
+
+    // Only for testing
+
+    public int loadBoard(String str) {
+        // Does not check if it corresponds to a "real" game
+        StringTokenizer st = new StringTokenizer(str, "\n");
+        int nonEmpty = 0;
+        int row = 0;
+        while (st.hasMoreTokens()) {
+            String rowChars = st.nextToken();
+            for (int column = 0; column < rowChars.length(); column++) {
+                Player player = Player.fromChar(rowChars.charAt(column));
+                if (player != null) {
+                    nonEmpty += 1;
+                }
+                cells[row][column] = player;
+            }
+            row += 1;
+        }
+        return nonEmpty;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder(42);
+        for (int row = 0; row < numRows; row++) {
+            for (int column = 0; column < numColumns; column++) {
+                Player player = cells[row][column];
+                sb.append(player != null ? player.toString() : "·");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+}
