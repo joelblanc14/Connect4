@@ -1,0 +1,73 @@
+public class Game {
+
+    private final Board board;
+    private final int toWin;
+    private Status status;
+
+    public Game(int rows, int columns, int toWin) {
+        this.board = new Board(rows,columns);
+        this.status = Status.ONE_PLAYS;
+        this.toWin = toWin;
+    }
+
+    public Status getStatus() {
+
+        return this.status;
+    }
+
+    public boolean canPlayColumn(int column) {
+        return board.canPlayColumn(column);
+    }
+
+    public Move play(int column) {
+
+        if(status.equals(Status.ONE_PLAYS)) {
+            Move move = new Move(Player.ONE, board.play(column, Player.ONE));
+            if(isFinished() && board.hasValidMoves()) {
+                status = status.ONE_HAS_WON;
+            } else if(isFinished() && !board.hasValidMoves()) {
+                status = status.DRAW;
+            }
+            else {
+                status = status.TWO_PLAYS;
+            }
+            return move;
+        } else if(status.equals(Status.TWO_PLAYS)) {
+            Move move = new Move(Player.TWO, board.play(column, Player.TWO));
+            if(isFinished() && board.hasValidMoves()) {
+                status = status.TWO_HAS_WON;
+            } else if(isFinished() && !board.hasValidMoves()) {
+                status = status.DRAW;
+            }
+            else {
+                status = status.ONE_PLAYS;
+            }
+            return move;
+        }
+        return new Move(null, null); //Impossible arribar aquí
+    }
+
+    public boolean isFinished() {
+        if(!board.hasValidMoves()) return true;
+        for(int i = 0; i < board.getNumRows(); i++) {
+            for(int j = 0; j < board.getNumColumns(); j++) {
+                if(board.maxConnected(new Position(i,j)) >= this.toWin) return true;
+            }
+        }
+        return false;
+    }
+
+    // Only for testing
+
+    public void loadGame(String str) {
+        // Does not check if it corresponds to a "real" game
+        int played = board.loadBoard(str);
+        status = played % 2 == 0
+                ? Status.ONE_PLAYS
+                : Status.TWO_PLAYS;
+    }
+    
+    public String toString() {
+        return this.board.toString();
+    }
+}
